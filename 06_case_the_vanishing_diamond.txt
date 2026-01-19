@@ -1,0 +1,61 @@
+###Case 006: The Vanishing Diamond
+At Miami’s prestigious Fontainebleau Hotel charity gala, the famous “Heart of Atlantis” diamond necklace suddenly disappeared from its display.
+
+**Objectives**
+1. Find who stole the diamond.
+
+
+**Investigation Process**
+
+#1. Understanding the crime scene
+
+SELECT * FROM crime_scene
+WHERE location = 'Fontainebleau Hotel';
+
+#Insight: The crime occurred at the Fontainebleau Hotel. Witnesses indicated that, among many guests, only two provided relevant clues: 
+a famous actor; a female consultant whose first name ends with “an”.
+
+
+#2. Identifying the actor witness
+
+SELECT g.id, name, occupation, invitation_code, clue FROM guest g
+LEFT JOIN witness_statements w ON g.id = w.guest_id
+WHERE occupation = 'Actor';
+
+#Insight: The actor who provided a clue was: Clint Eastwood (id 129) / “I overheard someone say, ‘Meet me at the marina, dock 3.’” / This suggested a planned meeting away from the hotel.
+
+
+#3. Identifying the consultant witness
+
+SELECT g.id, name, occupation, invitation_code, clue FROM guest g
+LEFT JOIN witness_statements w ON g.id = w.guest_id
+WHERE occupation = 'Consultant' AND clue IS NOT NULL;
+
+#Insight: The second witness was: Vivian Nair (id 116) / “I saw someone holding an invitation ending with ‘-R’. He was wearing a navy suit and a white tie.”
+
+
+#4. Following the invitation and attire clues
+
+SELECT
+g.id,
+name,
+occupation,
+invitation_code,
+note
+FROM guest g
+LEFT JOIN attire_registry a ON g.id = a.guest_id
+WHERE note = 'navy suit, white tie'
+AND invitation_code LIKE '%-R';
+
+#Insight: Only one guest matched both criteria: Mike Manning (id 105) / Occupation: Wealth Reallocation Expert / Invitation code: VIP-R / Attire: navy suit, white tie
+
+
+#5. Verifying through final interviews
+
+SELECT * FROM final_interviews
+WHERE id = 105;
+
+
+**Conclusion**
+The final interview confirmed Mike Manning as the individual involved in the crime.
+

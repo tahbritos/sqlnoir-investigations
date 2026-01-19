@@ -1,0 +1,35 @@
+### Case #001: The Vanishing Briefcase 
+Set in the gritty 1980s, a valuable briefcase has disappeared from the Blue Note Lounge. A witness reported that a man in a trench coat was seen fleeing the scene. Investigate the crime scene, review the list of suspects, and examine interview transcripts to reveal the culprit.
+
+**Objectives**
+1. Retrieve the correct crime scene details to gather the key clue.
+2. Identify the suspect whose profile matches the witness description.
+3. Verify the suspect using their interview transcript.
+
+
+**Investigation Process**
+
+#1. Understanding the crime scene
+
+SELECT * FROM crime_scene
+WHERE location = 'Blue Note Lounge';
+
+#Insight: The query returned crime_scene_id 76, dated 1985-11-20. The description mentioned a suspect wearing a trench coat and having a scar on the left cheek.
+
+
+#2. Filtering suspects based on witness description
+
+SELECT * FROM suspects
+WHERE scar = 'left cheek'  AND attire = 'trench coat'; 
+
+#Insight: Two suspects matched the description - Frankie Lombardi (id 3); Vincent Malone (id 183).
+
+
+#3. Verifying suspects through interviews
+
+SELECT * FROM suspects s
+LEFT JOIN interviews i on s.id = i.suspect_id
+WHERE suspect_id IN (3, 183)
+
+
+# Conclusion: After reviewing the interview transcripts, Vincent Malone was identified as the suspect responsible for the stolen briefcase.

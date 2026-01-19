@@ -1,0 +1,126 @@
+###Case 004: The Midnight Masquerade Murder
+
+On October 31, 1987, at a Coconut Grove mansion masked ball, Leonard Pierce was found dead in the garden. Can you piece together all the clues to expose the true murderer?
+
+**Objectives**
+1. Reveal the true murderer of this complex case.
+
+
+**Investigation Process**
+
+#1. Understanding the crime scene
+
+SELECT id, date, location, description
+FROM crime_scene
+WHERE location LIKE '%Coconut Grove%';
+
+#Insight: The crime occurred at a Miami mansion in Coconut Grove during a masked ball on 1987-10-31. Witnesses mentioned two relevant leads: a hotel booking; suspicious phone activity.
+
+
+#2. Reviewing witness statements
+
+SELECT *
+FROM witness_statements
+WHERE crime_scene_id = 75;
+
+#Insight: Witnesses confirmed the existence of a hotel reservation and unusual phone conversations connected to the event.
+
+
+#3. Investigating hotel check-ins
+
+SELECT *
+FROM hotel_checkins
+WHERE hotel_name = 'The Grand Regency'
+  AND check_in_date = 19871030;
+
+#Insight: The hotel records indicated guests who checked in the night before the crime, providing a clear temporal link to the incident.
+
+
+#4. Crossing hotel guests with phone records
+
+WITH grand_regency AS (
+    SELECT person_id
+    FROM hotel_checkins
+    WHERE hotel_name = 'The Grand Regency'
+      AND check_in_date = 19871030
+)
+SELECT *
+FROM phone_records
+WHERE caller_id IN (SELECT person_id FROM grand_regency)
+   OR recipient_id IN (SELECT person_id FROM grand_regency);
+
+#Insight: A critical phone call was identified: Caller: person_id 11 / Recipient: person_id 58 / Time: 23:30 / Note: “Why did you kill him, bro? You should have left the carpenter do it himself!” / This explicitly introduced a third party: a carpenter.
+
+
+#5. Expanding phone record analysis
+
+SELECT *
+FROM phone_records
+WHERE caller_id = 58
+   OR recipient_id = 58;
+
+SELECT *
+FROM phone_records
+WHERE caller_id = 133
+   OR recipient_id = 133;
+
+#Insight: Further calls revealed negotiations involving money and a Lamborghini, suggesting a paid execution rather than a crime of passion.
+
+
+#6. Reviewing personal records of involved individuals
+
+SELECT *
+FROM person
+WHERE id IN (11, 58, 133);
+
+#Insight: Person 58 admitted to acting as a middleman / Person 133 appeared as Unknown in personal records, raising suspicion due to the lack of verifiable identity.
+
+
+7. Reviewing final interviews
+
+SELECT *
+FROM final_interviews
+WHERE person_id IN (11, 58, 133);
+
+#Insight: Person 58 confessed: “I didn’t kill Leo per se. I was just a middleman.” / Person 133 denied involvement and claimed to be at a wedding, contradicting phone evidence.
+
+
+#8. Exploring an alternative investigative path: vehicle ownership
+
+#Given the mention of a Lamborghini in the phone conversation, vehicle ownership became a key factor.
+SELECT 
+    p.id,
+    p.name,
+    p.occupation,
+    v.plate_number,
+    v.car_make,
+    v.car_model
+FROM person p
+LEFT JOIN vehicle_registry v
+  ON p.id = v.person_id;
+
+SELECT *
+FROM vehicle_registry
+WHERE car_make LIKE '%Lambo%'
+ORDER BY person_id;
+
+
+#Insight: Person 58 owned no vehicle, making it impossible for him to deliver a Lamborghini / This implied that the car had already been transferred to the actual perpetrator.
+
+
+#9. Identifying the Lamborghini owner
+
+WITH lambo AS (
+    SELECT person_id
+    FROM vehicle_registry
+    WHERE car_make LIKE '%Lambo%'
+)
+SELECT *
+FROM person
+WHERE id IN (SELECT person_id FROM lambo);
+
+
+#Insight: Among the individuals capable of owning a Lamborghini, Marco Santos, a carpenter, stood out as inconsistent with his declared income — directly aligning with the phone reference to “the carpenter”.
+
+
+

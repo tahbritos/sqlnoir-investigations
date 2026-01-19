@@ -1,0 +1,118 @@
+###Case 003: The Miami Marina Murder
+A body was found floating near the docks of Coral Bay Marina in the early hours of August 14, 1986. Your job, detective, is to find the murderer and bring them to justice. This case might require the use of JOINs, wildcard searches, and logical deduction. Get to work, detective.
+
+**Objectives**
+1.Find the murderer. ( Start by finding the crime scene and go from there )
+
+
+**Investigation Process**
+
+#1. Understanding the crime scene
+
+SELECT * FROM crime_scene
+WHERE location = 'Coral Bay Marina'
+
+#Insight: The body of an unidentified man was found near the docks. Witnesses reported seeing two individuals nearby: one who lives on “300ish Ocean Drive”; another whose first name ends with “ul” and last name ends with “ez”.
+
+
+#2. Identifying initial suspects based on witness description
+
+#Suspect living on Ocean Drive
+SELECT id, name, occupation, address
+FROM person
+WHERE address LIKE '%Ocean Drive%';
+
+#Insight: This query returned: Carlos Mendez (id 101) — Fisherman, 369 Ocean Drive.
+
+#Suspect with name pattern “ul ez”
+SELECT id, name, occupation, address
+FROM person
+WHERE name LIKE '%ul %ez';
+
+#Insight: This query returned: Raul Gutierrez (id 102) — Nightclub Owner.
+
+
+#3. Reviewing interviews of initial suspects
+
+SELECT *
+FROM interviews
+WHERE person_id IN (101, 102);
+
+#Insight: The interviews did not conclusively identify the perpetrator, suggesting the need to explore additional evidence.
+
+
+#4. Investigating hotel activity near the incident date
+
+SELECT *
+FROM hotel_checkins
+WHERE check_in_date = 19860813
+  AND hotel_name LIKE '%Sunset%';
+
+#Insight: The result set was too large to directly identify a suspect, requiring a more refined approach.
+
+
+#5.Narrowing down suspicious behavior using surveillance records
+
+SELECT 
+    h.person_id,
+    p.name,
+    h.hotel_name,
+    h.check_in_date,
+    s.suspicious_activity
+FROM hotel_checkins h
+LEFT JOIN surveillance_records s
+  ON h.id = s.hotel_checkin_id
+LEFT JOIN person p
+  ON h.person_id = p.id
+WHERE h.check_in_date = 19860813
+  AND h.hotel_name LIKE '%Sunset%'
+  AND s.suspicious_activity IS NOT NULL;
+
+
+#Insight: Two individuals displayed suspicious behavior: Jacob Campbell (id 27) — Left suddenly at 3 AM / Gregory Stewart (id 39) — Spotted entering late at night
+
+
+#6. Reviewing interviews of newly identified individuals
+
+SELECT *
+FROM interviews
+WHERE id IN (27. 39);
+
+#Insight: Jacob appeared to be an eyewitness, mentioning unusual movements near dock C around midnight. / Gregory reported seeing an unfamiliar yacht that disappeared after the incident, suggesting observation rather than involvement.
+
+
+#7. Reviewing confessions table
+
+#To narrow the focus, confessions were filtered for all suspects identified so far.
+SELECT *
+FROM confessions
+WHERE person_id IN (101, 102, 27, 39);
+
+#Insight: None of these individuals confessed to the crime.
+
+
+#8. Exploring an alternative investigative path: occupational access
+
+#Given the crime scene (docks), a new hypothesis was considered: Individuals whose occupations naturally place them at the docks would attract less suspicion.
+
+SELECT DISTINCT occupation
+FROM person;
+
+#Based on this, the investigation focused on Fishermen and Dock Workers.
+
+SELECT *
+FROM person
+WHERE occupation = 'Fisherman'
+   OR occupation = 'Dock Worker';
+
+
+#9. Verifying confessions of dock-related workers
+
+SELECT *
+FROM confessions
+WHERE person_id IN (1, 8, 101);
+
+**Conclusion**
+Among the individuals with legitimate access to the docks, Thomas Brown (id 8) confessed to the crime.
+
+

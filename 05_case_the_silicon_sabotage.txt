@@ -1,0 +1,97 @@
+###Case 005: The Silicon Sabotage
+QuantumTech, Miami’s leading technology corporation, was about to unveil its groundbreaking microprocessor called “QuantaX.” Just hours before the reveal, the prototype was destroyed, and all research data was erased. Detectives suspect corporate espionage.
+
+**Objectives**
+1. Find who sabotaged the microprocessor.
+
+**Investigation Process**
+
+#1.Understanding the incident
+
+SELECT id, date, location, description
+FROM incident_reports
+WHERE location LIKE '%QuantumTech%';
+
+#Insight: The incident occurred on 1989-04-21 at QuantumTech HQ. The report confirmed that a prototype was destroyed and research data erased from servers, indicating deliberate internal sabotage.
+
+
+#2. Reviewing witness statements
+
+SELECT *
+FROM witness_statements
+WHERE incident_id = 74;
+
+#Insight: Two technical clues emerged from witnesses: Employee 145 mentioned a server located in Helsinki; Employee 134 observed a keycard marked “QX-” followed by a two-digit odd number. / These clues pointed to both digital access and physical facility access.
+
+
+#3. Correlating server access with keycard usage
+
+SELECT
+    c.employee_id,
+    c.access_date,
+    c.server_location,
+    k.keycard_code,
+    k.access_date,
+    k.access_time
+FROM computer_access_logs c
+INNER JOIN keycard_access_logs k
+    ON c.employee_id = k.employee_id
+WHERE c.server_location = 'Helsinki'
+  AND k.keycard_code LIKE 'QX-0%';
+
+
+#Insight: This intersection isolated a small group of employees who: accessed the Helsinki server; used a QX-series keycard on the same day / Among them, employee_id 99 matched the witness description exactly (odd-numbered keycard).
+
+
+#4. Identifying the technical executor
+
+SELECT *
+FROM employee_records
+WHERE id = 99;
+
+#Insight: Elizabeth Gordon (id 99), Department: Engineering, Role: Solutions Architect / Her access matched all technical indicators, suggesting she executed the system-level access, but not necessarily the sabotage itself.
+
+
+#5. Investigating communications around the executor
+
+SELECT *
+FROM email_logs
+WHERE sender_employee_id = 99
+   OR recipient_employee_id = 99;
+
+#Insight: Email analysis revealed coordination that suggested Elizabeth acted after being prompted, not independently.
+
+
+#6. Expanding the investigation to a coordinating party
+
+SELECT *
+FROM employee_records
+WHERE id = 263;
+
+SELECT *
+FROM email_logs
+WHERE sender_employee_id = 263
+   OR recipient_employee_id = 263;
+
+
+#Insight: Two critical emails were identified with sender_employee_id = NULL, indicating system-triggered or anonymized messages. The content revealed explicit orchestration: directing Elizabeth (“L”) into Facility 18; emphasizing precise timing; ensuring audit logs would implicate the correct individual.
+
+
+#7. Verifying physical access to Facility 18
+
+SELECT *
+FROM facility_access_logs
+WHERE facility_name = 'Facility 18';
+
+#Insight: The logs showed a decisive access to Facility 18 at 09:01, immediately following the window described in the emails.
+
+
+#8. Identifying the final executor of the sabotage
+
+SELECT *
+FROM employee_records
+WHERE id = 297;
+
+#Insight: Hristo Bogoev (id 297), Department: Engineering, Role: Principal Engineer. Hristo was the last individual to access Facility 18 during the critical time window, aligning precisely with the orchestrated plan described in the anonymized emails.
+
+
